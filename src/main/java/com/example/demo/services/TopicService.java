@@ -13,13 +13,14 @@ import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
 public class TopicService {
 
-  private static Logger LOG = LoggerFactory.getLogger(TopicService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TopicService.class);
 
   @Autowired
   private AdminClient adminClient;
@@ -27,7 +28,7 @@ public class TopicService {
   public Collection<Topic> getAllTopics() throws ExecutionException, InterruptedException {
     return adminClient
         .describeTopics(fetchAllTopicNames())
-        .all()
+        .allTopicNames()
         .get()
         .values()
         .stream()
@@ -51,8 +52,7 @@ public class TopicService {
   public Topic getTopic(String topicName)
       throws ExecutionException, InterruptedException {
     return adminClient
-        .describeTopics(Arrays.asList(topicName))
-        .all()
+            .describeTopics(Collections.singletonList(topicName)).allTopicNames()
         .get()
         .values()
         .stream()
@@ -70,15 +70,14 @@ public class TopicService {
 
   public void createTopic(Topic topic) throws ExecutionException, InterruptedException {
     adminClient
-            .createTopics(Arrays.asList(ServiceHelper.fromTopic(topic)))
+            .createTopics(Collections.singletonList(ServiceHelper.fromTopic(topic)))
             .values()
             .get(topic.getName())
             .get();
   }
 
   public void deleteTopic(String name) throws ExecutionException, InterruptedException {
-    adminClient.deleteTopics(Arrays.asList(name))
-            .values()
+    adminClient.deleteTopics(Collections.singletonList(name)).topicNameValues()
             .get(name)
             .get();
   }
